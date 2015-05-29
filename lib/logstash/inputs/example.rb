@@ -1,38 +1,56 @@
 # encoding: utf-8
 require "logstash/inputs/base"
 require "logstash/namespace"
-require "stud/interval"
-require "socket" # for Socket.gethostname
+# This input allows you to receive events over hpfeeds.
 
-# Generate a repeating message.
-#
-# This plugin is intented only as an example.
+class LogStash::Inputs::Hpfeeds < LogStash::Inputs::Base
 
-class LogStash::Inputs::Example < LogStash::Inputs::Base
-  config_name "example"
+  config_name "hpfeeds"
 
-  # If undefined, Logstash will complain, even if codec is unused.
-  default :codec, "plain" 
+  default :codec, "plain"
 
-  # The message string to use in the event.
-  config :message, :validate => :string, :default => "Hello World!"
+  # The identity for your hpfeeds broker.
+  config :ident, :validate => :string, :required => :true
 
-  # Set how frequently messages should be sent.
-  #
-  # The default, `1`, means send a message every second.
-  config :interval, :validate => :number, :default => 1
+  # The hpfeeds secret for the user/identity.
+  config :secret, :validate => :password, :required => :true
+
+  # channels to subscribe to on hpfeeds
+  config :channels, :validate => :array
+
+  # The brokker hostname/IP
+  config :host, :validate => :string
+  # The port the broker is listening to
+  config :port, :validate => :number
+
+ 
+
 
   public
   def register
-    @host = Socket.gethostname
+    require 'hpfeeds' # xmpp4r gem
+    @client = HPFeeds::Client.new({
+    host:   @host,
+    port:   @port,  # default is 10000
+    ident:  @ident,
+    secret: @secret.value  })
   end # def register
 
-  def run(queue)
-    Stud.interval(@interval) do
-      event = LogStash::Event.new("message" => @message, "host" => @host)
-      decorate(event)
-      queue << event
-    end # loop
+  public
+#  def run(queue)do |name, chan, payload|
+	def run(queue)
+  	@client.subscribe(*@channels)  do |name, chan, payload|
+    	@codec.decode(payload) do |event|
+      	decorate(event)
+        event["message"] = payload
+        event["host"] = @host
+        event["chan"] = chan
+        event["name"] = name
+  	end
+	end
+	@client.run()
   end # def run
 
-end # class LogStash::Inputs::Example
+end # class LogStash::Inputs::Xmpp
+
+

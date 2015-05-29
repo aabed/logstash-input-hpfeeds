@@ -49,7 +49,7 @@ bundle exec rspec
 
 - Edit Logstash `Gemfile` and add the local plugin path, for example:
 ```ruby
-gem "logstash-filter-awesome", :path => "/your/local/logstash-filter-awesome"
+gem "logstash-input-hpfeeds", :path => "/your/local/logstash-input-hpfeeds"
 ```
 - Install plugin
 ```sh
@@ -57,7 +57,15 @@ bin/plugin install --no-verify
 ```
 - Run Logstash with your plugin
 ```sh
-bin/logstash -e 'filter {awesome {}}'
+bin/logstash -e 'input {hpfeeds {
+port => 10000
+	ident => "geoloc"
+        host => "10.10.20.99"
+	secret => "09b0632146c3474582cf03508a22a624"
+        channels => ["dionaea.connections"]
+	codec => "json" 
+
+}}'
 ```
 At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
 
