@@ -26,6 +26,11 @@ Need help? Try #logstash on freenode IRC or the logstash-users@googlegroups.com 
 
 - Install dependencies
 ```sh
+wget https://github.com/aabed/hpfeeds-ruby/blob/master/hpfeeds-0.1.7.gem
+hpfeeds-0.1.7.gem
+```
+
+```sh
 bundle install
 ```
 
