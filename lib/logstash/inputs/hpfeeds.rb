@@ -23,7 +23,7 @@ class LogStash::Inputs::Hpfeeds < LogStash::Inputs::Base
   # The port the broker is listening to
   config :port, :validate => :number
 
- 
+
 
 
   public
@@ -46,11 +46,10 @@ class LogStash::Inputs::Hpfeeds < LogStash::Inputs::Base
         event["host"] = @host
         event["chan"] = chan
         event["name"] = name
+        queue << event
   	end
 	end
 	@client.run()
   end # def run
 
 end # class LogStash::Inputs::Xmpp
-
-
